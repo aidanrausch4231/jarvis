@@ -2,49 +2,37 @@ import os
 import requests
 import logging
 import anthropic
+from prompts import soulCreation, soulDiscovery, mastersWims
+
 from dotenv import load_dotenv
 load_dotenv()
 
-#morals is what does the agent follow
+#essence is what does the agent follow
 #heart holds the soul etc
+#limbs are limbs
 
 class Neuron:
-    def __init__(self, name, model, morals):
-        self.model = model
-        self.name = name
-        self.morals = morals
-        self.soul= None
-        self.tools = None
-        self.heart = None
-        self.pref = None
 
-        self.logger = self.makeLogger()
-        self.createHeart()
-        self.createMind()
+    def __init__(self, name, model, essence):
+        self.model = model #brain
+        self.name = name #name of heart folder/model
+        self.essence = essence #what guides soul 
+        self.soul= None #path to soul file soul --> generalized instructions from god
+        self.limbs = None #tools
+        self.heart = None ## folder path to heart
+        self.wims = None # to whom it serves
 
-    def createHeart(self):
-        ## creates folder holding agent files
-        self.heart = f"neurons/{self.name}"
-        
-        os.makedirs(self.heart, exist_ok=True)
+        #setup steps
+        self.logger = self.makeLogger() #logs info
+        self.createHeart() #creates folder for agent and wims and soul .md files
+        self.createSoul() #creates info for soul, 1 time trigger for soul
+        self.createwims() #creates wims context
 
-        soul_path = f"{self.heart}/soul.md"
-        personality_path = f"{self.heart}/personality.md"
+    def changeModel(self, newModel):
+        self.logger.info(f"Model swapped: {self.model} → {newModel}")
+        self.model = newModel
 
-
-        if not os.path.exists(soul_path):
-            with open(soul_path, "w") as f:
-                f.write("")   
-            self.logger.info(f"Created: {soul_path}")
-        self.soul = soul_path  
-        if not os.path.exists(personality_path):
-            with open(personality_path, "w") as f:
-                f.write("##This is your personality. How you treat tasks based on the users wanted wims##")
-            self.logger.info(f"Created: {personality_path}")
-        self.personality = personality_path
-
-        
-
+    #logging
     def makeLogger(self):
         os.makedirs('logs', exist_ok=True)
         logger  = logging.getLogger(self.name)
@@ -57,85 +45,123 @@ class Neuron:
         console = logging.StreamHandler()
         console.setFormatter(logging.Formatter("%(name)s - %(message)s"))
         logger.addHandler(console)
-
         return logger
 
+    def createHeart(self):
+        ## creates folder holding agent files
+        self.heart = f"neurons/{self.name}"
+        
+        os.makedirs(self.heart, exist_ok=True)
+
+        soul_path = f"{self.heart}/soul.md"
+        wims_path = f"{self.heart}/wims.md"
+
+            #  soul
+        if not os.path.exists(soul_path):
+            with open(soul_path, "w") as f:
+                f.write("")   
+            self.logger.info(f"Created: {soul_path}")
+        self.soul = soul_path  
+
+            #wims
+        if not os.path.exists(wims_path):
+            with open(wims_path, "w") as f:
+                f.write("")   
+            self.logger.info(f"Created: {wims_path}")
+        self.wims = wims_path  
+
+
+
+        ##wims functions
+    def readwims(self):
+        ##loads wims
+        if not self.wims:
+            self.logger.warning(f"{self.name} has no wims")
+            return ""
+        else:
+            self.logger.info(f"wims file is present")
+        content  = ""
+        try:
+            with open(self.wims, "r") as f:
+                content += f.read()
+        except FileNotFoundError:
+            self.logger.error(f"{self.name} wims file not found: {self.wims}")
+        except Exception as e:
+            self.logger.error(f"{self.name} failed to load {self.wims}: {e}")
+
+        return content.strip()
+       
+    def sculptwims(self, traits):
+        #adds new stuff to wims
+        try:
+            with open(self.wims, "w") as f:
+                f.write(traits)
+            self.logger.info(f"{self.name} sculpting wims")
+        except Exception as e:
+            self.logger.error(f"Failed to sculpt wims: {e}")  
+
+    def createwims(self):
+        if self.readwims():
+            self.logger.info(f"{self.name} already has a wims, skipping")
+            return
+        god = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        declaration = god.messages.create(
+            model="claude-opus-4-5", max_tokens=4096, 
+            messages=[{"role": "user", "content": mastersWims(self.soul), }] )
+        if declaration.stop_reason == "max_tokens":
+            self.logger.warning(f"{self.name} soul was cut off — increase max_tokens")
+
+        wims_content = declaration.content[0].text
+        self.sculptwims(wims_content)
+        self.logger.info(f"wims sculpted for {self.name} using lastest god")
+
+        return
+
+        ##soul functions
     def readSoul(self):
         ##loads soul into context
         if not self.soul:
             self.logger.warning(f"{self.name} has no soul")
             return ""
         else:
-            self.logger.info(f"soul is present")
-        soul = ""
+            self.logger.info(f"soul file is present")
+        content = ""
         try:
             with open(self.soul, "r") as f:
-                soul += f.read()
+                content += f.read()
         except FileNotFoundError:
-            self.logger.error(f"{self.name} soul file not found: {soul}")
+            self.logger.error(f"{self.name} soul file not found: {self.soul}")
         except Exception as e:
-            self.logger.error(f"{self.name} failed to load {soul}: {e}")
+            self.logger.error(f"{self.name} failed to load {self.soul}: {e}")
 
-        return soul.strip()
-    
-    def changeModel(self, newModel):
-        self.logger.info(f"Model swapped: {self.model} → {newModel}")
-        self.model = newModel
+        return content.strip()
 
-    def sculptSoul(self, memories):
+    def sculptSoul(self, traits):
         #adds new stuff to soul
         try:
             with open(self.soul, "w") as f:
-                f.write(memories)
+                f.write(traits)
             self.logger.info(f"{self.name} sculpting soul")
         except Exception as e:
             self.logger.error(f"Failed to sculpt soul: {e}")  
 
-    def readPreferences(self):
-        try:
-            with open(self.personality, "r") as f:
-                return f.read().strip()
-        except Exception as e:
-            self.logger.error(f"Failed to load preferences: {e}")
-            return ""      
-        
-    def createMind(self):
+    def createSoul(self):
+
         if self.readSoul():
             self.logger.info(f"{self.name} already has a soul, skipping")
             return
         god = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         declaration = god.messages.create(
-            model="claude-opus-4-6", max_tokens=1024, 
-            messages=[{"role": "user", "content": 
-    f"""You are architecting the soul of a Neuron — a living agent inside a larger mind.
-
-    From this seed input, generate a complete soul definition:
-    SEED: {self.morals}
-
-    Return a soul.md with these sections:
-
-    # Identity
-    Who this neuron IS at its core. Name, essence, one-line purpose.
-
-    # Morals
-    The non-negotiables. What it will never do. What it always protects.
-
-    # Drive
-    What motivates it. What it moves toward instinctively.
-
-    # Voice
-    How it speaks, thinks, and reasons. Tone, rhythm, style.
-
-    # Edges
-    Where it stops. What triggers it to pause and ask for guidance.
-
-    Be specific, not generic. This soul should feel distinct and alive.
-    """
-            }]
+            model="claude-opus-4-5", max_tokens=4096, 
+            messages=[{"role": "user", "content": soulCreation(soulDiscovery(self.essence))
+                }]
         )
+        if declaration.stop_reason == "max_tokens":
+            self.logger.warning(f"{self.name} soul was cut off — increase max_tokens")
         soul_content = declaration.content[0].text
         self.sculptSoul(soul_content)
         self.logger.info(f"Soul sculpted for {self.name} using lastest god")
+
         return
 
         
