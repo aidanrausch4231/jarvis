@@ -1,4 +1,4 @@
-from helperFunctions.auth import get_tasks_service
+from auth import get_tasks_service
 
 
 def list_task_lists():

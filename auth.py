@@ -11,40 +11,49 @@ SCOPES = [
     "https://www.googleapis.com/auth/tasks",
     "https://www.googleapis.com/auth/gmail.modify",
 ]
+#different gmail accounts
+ACCOUNTS = {
+    "personal": {
+        "token":       "config/tokens/token_personal.json",
+        "credentials": "config/credentials_personal.json",
+    },
+    "school": {
+        "token":       "config/tokens/token_school.json",
+        "credentials": "config/credentials_school.json",
+    },
+}
 
-TOKEN_FILE = "token.json"
-CREDENTIALS_FILE = "credentials.json"
 
 _creds = None
 _services = {}
 
 
-def _load_or_authorize():
-    global _creds
+def _load_or_authorize(account: str):
+    account = ACCOUNTS[account]
     creds = None
 
-    if os.path.exists(TOKEN_FILE):
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
+    if os.path.exists(account['token']):
+        creds = Credentials.from_authorized_user_file(account['token'], SCOPES)
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(account['credentials'], SCOPES)
             creds = flow.run_local_server(port=0)
 
-        with open(TOKEN_FILE, "w") as f:
+        with open(account['token'], "w") as f:
             f.write(creds.to_json())
 
-    _creds = creds
+    creds = creds
     return creds
 
 
-def _refresh_token():
+def _refresh_token(account: str):
     global _creds
     if _creds and _creds.expired and _creds.refresh_token:
         _creds.refresh(Request())
-        with open(TOKEN_FILE, "w") as f:
+        with open(ACCOUNTS[account], "w") as f:
             f.write(_creds.to_json())
     _schedule_refresh()
 

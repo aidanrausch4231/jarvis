@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from helperFunctions.auth import get_calendar_service
+from auth import get_calendar_service
 
 
 def get_upcoming_events(max_results=10):

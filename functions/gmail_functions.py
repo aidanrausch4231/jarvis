@@ -1,7 +1,7 @@
 import base64
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from helperFunctions.auth import get_gmail_service
+from auth import get_gmail_service
 
 
 def _encode_message(message):
