@@ -163,5 +163,16 @@ class Neuron:
         self.logger.info(f"Soul sculpted for {self.name} using lastest god")
 
         return
+    
+    ##interactions 
+    def think(self, input):
+        brain = anthropic.Anthropic(api_key= os.getenv("ANTHROPIC_API_KEY"))
+        thinking = brain.messages.create(
+            model= self.model, 
+            maxtokens = 2048, 
+            messages= {"role": "user", "content": input)
+                }])
+
+
 
         
