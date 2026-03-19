@@ -104,7 +104,7 @@ Write in under 800 words. Do not truncate any section.
 This is not a prompt. This is a birth.
 """
    
-def mastersWims(soulPath):
+def mastersWhims(soulPath):
     with open(soulPath, 'r') as f:
         soul = f.read()
 

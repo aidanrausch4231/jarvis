@@ -1,6 +1,11 @@
 from datetime import datetime, timezone
 from auth import get_calendar_service
 
+def gmailNeuron(Neuron):
+    def __init__(self):
+        name = gmail
+        
+
 
 def get_upcoming_events(max_results=10):
     service = get_calendar_service()

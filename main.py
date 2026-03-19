@@ -1,14 +1,13 @@
-from neuronMaker import Neuron
+from neuron import Neuron
+from neurons.gmail.gmailNeuron import GmailNeuron
 def main():
-    calendarNeuron = Neuron( 'calendar', 'sonnet4.6', 'manages and organizes my and calendar')
-    taskNeuron = Neuron('tasks', 'sonnet4.6', 'helps me complete my objectives and goals ')
-    gmailNeuron = Neuron('gmail', 'sonnit4.6', 'recieves, drafts, collaborates on my emails')
-    findinglove = Neuron('lifecoach', 'sonnit4.6', 'a lifecoach for romantic and future and what to do with my life')
-    ideaMan = Neuron('ideaboard', 'sonnit4.6', 'i want to be an entrepreneur and need a soundboard for ideas')
-    matchmaker = Neuron('love', 'sonnit4.6', 'how do I find the woman for me, smart intelligiant funny')
-    writer = Neuron('writer', 'sonnit4.6', 'write essays and documents for me in my voice, also helps make my writing better')
 
+    # create the agent
+    gmail = GmailNeuron()
 
+    # call it
+    reply, history = gmail.think("write an email draft to big time ceo about me getting big time job please to matt wilkson at Monsoon for software engineer-- i already had an internship last yar at his b2b sas company that does book sales")
+    print(reply)
 
 
 if __name__ == "__main__": 
