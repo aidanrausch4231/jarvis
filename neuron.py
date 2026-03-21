@@ -27,6 +27,7 @@ class Neuron:
         self.whims = None # to whom it serves
         self.maxTokens = 1024
         self.master = "master.md"
+        self.history = []
 
         #setup steps
         self.logger = self.makeLogger() #logs info
@@ -211,8 +212,8 @@ class Neuron:
         None
     
     def addLimbs(self, tools: list):
-        self.limbs.append(tools)
-        self.logger.info(self.name + " added more limbs ")
+        self.limbs.extend(tools)  # extend, not append
+        self.logger.info(f"{self.name} added {len(tools)} limbs")
 
     def sculptThink():
         None
