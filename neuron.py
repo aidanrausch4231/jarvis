@@ -22,7 +22,7 @@ class Neuron:
         self.god = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY")) ##where god is located
         self.essence = essence #what guides soul 
         self.soul= None #path to soul file soul --> generalized instructions from god
-        self.limbs = [] #tools
+        self.limbs = []#tools
         self.heart = None ## folder path to heart
         self.whims = None # to whom it serves
         self.maxTokens = 1024
@@ -147,7 +147,7 @@ class Neuron:
             return
         declaration = self.god.messages.create(
             model="claude-opus-4-5", max_tokens=4096, 
-            messages=[{"role": "user", "content": masterswhims(self.soul), }] )
+            messages=[{"role": "user", "content": mastersWhims(self.soul), }] )
         if declaration.stop_reason == "max_tokens":
             self.logger.warning(f"{self.name} soul was cut off — increase max_tokens")
 
